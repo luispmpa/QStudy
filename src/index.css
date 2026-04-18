@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 18% 8%;
+    --foreground: 210 20% 96%;
+    --card: 222 18% 11%;
+    --card-foreground: 210 20% 96%;
+    --popover: 222 18% 11%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 199 89% 56%;
+    --primary-foreground: 222 18% 8%;
+    --primary-glow: 199 89% 70%;
+    --secondary: 222 16% 16%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 222 16% 14%;
+    --muted-foreground: 215 16% 56%;
+    --accent: 222 16% 16%;
+    --accent-foreground: 210 20% 96%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 210 20% 96%;
+    --success: 142 71% 45%;
+    --success-foreground: 210 20% 96%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 222 18% 8%;
+    --border: 222 16% 18%;
+    --input: 222 16% 18%;
+    --ring: 199 89% 56%;
+    --radius: 0.5rem;
+    --sidebar-background: 222 18% 9%;
+    --sidebar-foreground: 210 20% 96%;
+    --sidebar-primary: 199 89% 56%;
+    --sidebar-primary-foreground: 222 18% 8%;
+    --sidebar-accent: 222 16% 14%;
+    --sidebar-accent-foreground: 210 20% 96%;
+    --sidebar-border: 222 16% 18%;
+    --gradient-primary: linear-gradient(135deg, hsl(199 89% 56%), hsl(222 89% 65%));
+    --gradient-surface: linear-gradient(180deg, hsl(222 18% 11%), hsl(222 18% 9%));
+    --shadow-glow: 0 0 40px -10px hsl(199 89% 56% / 0.4);
+    --shadow-card: 0 4px 24px -6px hsl(0 0% 0% / 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply dark;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
