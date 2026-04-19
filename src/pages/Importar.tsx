@@ -10,6 +10,7 @@ import {
 } from '@/lib/firestore';
 import { Projeto, Caderno, Materia, NovaQuestao } from '@/types';
 import { extractTextFromPdf, parseQuestoes, QuestaoParseada } from '@/lib/pdfParser';
+import { parseHtmlQuestoes, QuestaoHtmlParseada } from '@/lib/htmlParser';
 import { PageHeader } from '@/components/Shared';
 import { QuestaoModal } from '@/components/QuestaoModal';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Upload, X, FileText, Plus, AlertCircle } from 'lucide-react';
+import { Upload, X, FileText, Plus, AlertCircle, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -45,6 +46,11 @@ export default function Importar() {
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [manualOpen, setManualOpen] = useState(false);
+
+  const [htmlInput, setHtmlInput] = useState('');
+  const [htmlQuestoes, setHtmlQuestoes] = useState<QuestaoHtmlParseada[]>([]);
+  const [savingHtml, setSavingHtml] = useState(false);
+  const htmlFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -142,6 +148,76 @@ export default function Importar() {
     setManualOpen(false);
   }
 
+  function handleParseHtml() {
+    const html = htmlInput.trim();
+    if (!html) { toast.error('Cole o HTML antes de processar'); return; }
+    const parsed = parseHtmlQuestoes(html);
+    if (parsed.length === 0) {
+      toast.warning('Nenhuma questão encontrada no HTML. Verifique o formato.');
+    } else {
+      setHtmlQuestoes(parsed);
+      toast.success(`${parsed.length} questão(ões) encontrada(s)!`);
+    }
+  }
+
+  function handleHtmlFile(file: File) {
+    if (!file.name.endsWith('.html') && !file.name.endsWith('.htm')) {
+      toast.error('Selecione um arquivo HTML (.html ou .htm)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      setHtmlInput(text);
+      const parsed = parseHtmlQuestoes(text);
+      if (parsed.length === 0) {
+        toast.warning('Nenhuma questão encontrada no HTML.');
+      } else {
+        setHtmlQuestoes(parsed);
+        toast.success(`${parsed.length} questão(ões) encontrada(s)!`);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function removeHtmlQuestao(idx: number) {
+    setHtmlQuestoes((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  async function handleSalvarHtmlLote() {
+    if (!projetoId || !cadernoId || !materiaId) {
+      toast.error('Selecione Projeto, Caderno e Matéria');
+      return;
+    }
+    const validas = htmlQuestoes.filter((q) => q.gabarito !== null);
+    if (validas.length === 0) {
+      toast.error('Nenhuma questão com gabarito identificado');
+      return;
+    }
+    setSavingHtml(true);
+    try {
+      const novas: NovaQuestao[] = validas.map((q) => ({
+        projetoId,
+        cadernoId,
+        materiaId,
+        enunciado: q.enunciado,
+        alternativas: q.alternativas as NovaQuestao['alternativas'],
+        gabarito: q.gabarito as NovaQuestao['gabarito'],
+        explicacao: q.explicacao,
+        banca: q.banca,
+        ano: q.ano,
+      }));
+      await criarQuestoesEmLote(novas);
+      toast.success(`${novas.length} questão(ões) salva(s)!`);
+      setHtmlQuestoes([]);
+      setHtmlInput('');
+    } catch {
+      toast.error('Erro ao salvar questões');
+    } finally {
+      setSavingHtml(false);
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -200,6 +276,7 @@ export default function Importar() {
       <Tabs defaultValue="pdf">
         <TabsList>
           <TabsTrigger value="pdf">Upload PDF</TabsTrigger>
+          <TabsTrigger value="html">Import HTML</TabsTrigger>
           <TabsTrigger value="manual">Manual</TabsTrigger>
         </TabsList>
 
@@ -285,6 +362,100 @@ export default function Importar() {
                           size="icon"
                           className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
                           onClick={() => removeQuestao(idx)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="html" className="mt-4">
+          <Card className="mb-4">
+            <CardContent className="p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-foreground">Cole o HTML ou carregue um arquivo</p>
+                <div className="flex gap-2">
+                  <input
+                    ref={htmlFileRef}
+                    type="file"
+                    accept=".html,.htm"
+                    className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleHtmlFile(f); }}
+                  />
+                  <Button variant="outline" size="sm" onClick={() => htmlFileRef.current?.click()}>
+                    <Upload className="h-3.5 w-3.5 mr-1.5" />
+                    Arquivo HTML
+                  </Button>
+                  <Button size="sm" onClick={handleParseHtml} disabled={!htmlInput.trim()}>
+                    <Code className="h-3.5 w-3.5 mr-1.5" />
+                    Processar
+                  </Button>
+                </div>
+              </div>
+              <textarea
+                className="w-full h-40 text-xs font-mono bg-muted/20 border border-border rounded p-2 text-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-y"
+                placeholder="Cole aqui o HTML copiado do QConcursos, TecConcursos etc."
+                value={htmlInput}
+                onChange={(e) => setHtmlInput(e.target.value)}
+                spellCheck={false}
+              />
+              <p className="text-xs text-muted-foreground">
+                Compatível com: QConcursos, TecConcursos e outros sites que usam <code>.card</code> / <code>.enunciado</code> / <code>.alt</code>
+              </p>
+            </CardContent>
+          </Card>
+
+          {htmlQuestoes.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-medium text-foreground">
+                  {htmlQuestoes.length} questão(ões) encontrada(s)
+                </p>
+                <Button
+                  onClick={handleSalvarHtmlLote}
+                  disabled={savingHtml || !projetoId || !cadernoId || !materiaId}
+                >
+                  {savingHtml ? 'Salvando...' : `Salvar todas (${htmlQuestoes.filter(q => q.gabarito).length})`}
+                </Button>
+              </div>
+
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                {htmlQuestoes.map((q, idx) => (
+                  <Card key={idx} className={cn(!q.gabarito && 'border-warning/50')}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            {q.banca && <Badge variant="outline" className="text-xs">{q.banca}</Badge>}
+                            {q.ano && <Badge variant="outline" className="text-xs">{q.ano}</Badge>}
+                            {q.gabarito ? (
+                              <Badge variant="success" className="text-xs">Gabarito: {q.gabarito}</Badge>
+                            ) : (
+                              <Badge variant="warning" className="text-xs flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                Sem gabarito
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-foreground line-clamp-2">{q.enunciado}</p>
+                          <div className="mt-2 space-y-0.5">
+                            {Object.entries(q.alternativas).map(([l, t]) => (
+                              <p key={l} className="text-xs text-muted-foreground">
+                                <span className="font-medium">{l})</span> {t}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => removeHtmlQuestao(idx)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
