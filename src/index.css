@@ -52,6 +52,93 @@
   }
 }
 
+/* ── Tiptap Rich Text Editor ─────────────────────────────────────────────── */
+.rich-editor-content .ProseMirror {
+  padding: 12px;
+  outline: none;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: hsl(var(--foreground));
+  min-height: inherit;
+}
+.rich-editor-content .ProseMirror > * + * { margin-top: 0.5em; }
+.rich-editor-content .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+.rich-editor-content .ProseMirror strong { font-weight: 700; }
+.rich-editor-content .ProseMirror em { font-style: italic; }
+.rich-editor-content .ProseMirror u { text-decoration: underline; }
+.rich-editor-content .ProseMirror s { text-decoration: line-through; }
+.rich-editor-content .ProseMirror code {
+  background: hsl(var(--muted));
+  color: hsl(var(--primary));
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-family: "Courier New", monospace;
+  font-size: 0.82em;
+}
+.rich-editor-content .ProseMirror pre {
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  padding: 0.75em 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: "Courier New", monospace;
+  font-size: 0.82em;
+}
+.rich-editor-content .ProseMirror pre code {
+  background: none;
+  padding: 0;
+  color: hsl(var(--foreground));
+}
+.rich-editor-content .ProseMirror ul { list-style: disc; padding-left: 1.5em; }
+.rich-editor-content .ProseMirror ol { list-style: decimal; padding-left: 1.5em; }
+.rich-editor-content .ProseMirror blockquote {
+  border-left: 3px solid hsl(var(--primary));
+  padding-left: 1em;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+.rich-editor-content .ProseMirror hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 1em 0;
+}
+/* Estilos de exibição das explicações no modo estudo */
+.rich-content strong { font-weight: 700; }
+.rich-content em { font-style: italic; }
+.rich-content u { text-decoration: underline; }
+.rich-content s { text-decoration: line-through; }
+.rich-content code {
+  background: hsl(var(--muted));
+  color: hsl(var(--primary));
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+.rich-content pre {
+  background: hsl(var(--muted));
+  padding: 0.75em;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.85em;
+  margin: 0.5em 0;
+}
+.rich-content p + p { margin-top: 0.5em; }
+.rich-content ul { list-style: disc; padding-left: 1.5em; }
+.rich-content ol { list-style: decimal; padding-left: 1.5em; }
+.rich-content blockquote {
+  border-left: 3px solid hsl(var(--primary));
+  padding-left: 1em;
+  font-style: italic;
+  opacity: 0.85;
+}
+
 @layer utilities {
   .gradient-primary {
     background: var(--gradient-primary);
