@@ -219,9 +219,10 @@ export default function Estudo() {
               <span className="text-success">{questaoAtual.gabarito}</span>
             </p>
             {questaoAtual.explicacao && (
-              <p className="text-muted-foreground text-sm mt-2 leading-relaxed">
-                {questaoAtual.explicacao}
-              </p>
+              <div
+                className="rich-content text-muted-foreground text-sm mt-2 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: questaoAtual.explicacao }}
+              />
             )}
           </CardContent>
         </Card>

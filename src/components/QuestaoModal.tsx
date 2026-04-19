@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import { NovaQuestao } from '@/types';
 
 interface QuestaoModalProps {
@@ -185,13 +186,12 @@ export function QuestaoModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="explicacao">Explicação (opcional)</Label>
-            <Textarea
-              id="explicacao"
+            <Label>Explicação (opcional)</Label>
+            <RichTextEditor
               value={explicacao}
-              onChange={(e) => setExplicacao(e.target.value)}
+              onChange={setExplicacao}
               placeholder="Comentário ou explicação da questão..."
-              rows={3}
+              minHeight={120}
             />
           </div>
 
