@@ -2,7 +2,6 @@ import {
   collection,
   query,
   where,
-  orderBy,
   onSnapshot,
   addDoc,
   updateDoc,
@@ -25,14 +24,13 @@ function getUid(): string {
 
 export function listenProjetos(cb: (data: Projeto[]) => void): Unsubscribe {
   const uid = getUid();
-  const q = query(
-    collection(db, 'projetos'),
-    where('userId', '==', uid),
-    orderBy('criadoEm', 'desc')
-  );
-  return onSnapshot(q, (snap) =>
-    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Projeto)))
-  );
+  const q = query(collection(db, 'projetos'), where('userId', '==', uid));
+  return onSnapshot(q, (snap) => {
+    const data = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as Projeto))
+      .sort((a, b) => b.criadoEm - a.criadoEm);
+    cb(data);
+  });
 }
 
 export async function criarProjeto(nome: string): Promise<void> {
@@ -76,12 +74,14 @@ export function listenCadernos(
   const q = query(
     collection(db, 'cadernos'),
     where('userId', '==', uid),
-    where('projetoId', '==', projetoId),
-    orderBy('criadoEm', 'desc')
+    where('projetoId', '==', projetoId)
   );
-  return onSnapshot(q, (snap) =>
-    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Caderno)))
-  );
+  return onSnapshot(q, (snap) => {
+    const data = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as Caderno))
+      .sort((a, b) => b.criadoEm - a.criadoEm);
+    cb(data);
+  });
 }
 
 export async function criarCaderno(
@@ -127,12 +127,14 @@ export function listenMaterias(
   const q = query(
     collection(db, 'materias'),
     where('userId', '==', uid),
-    where('cadernoId', '==', cadernoId),
-    orderBy('criadoEm', 'desc')
+    where('cadernoId', '==', cadernoId)
   );
-  return onSnapshot(q, (snap) =>
-    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Materia)))
-  );
+  return onSnapshot(q, (snap) => {
+    const data = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as Materia))
+      .sort((a, b) => b.criadoEm - a.criadoEm);
+    cb(data);
+  });
 }
 
 export async function criarMateria(
